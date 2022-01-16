@@ -63,6 +63,7 @@ def get_tokens(sent,tokens_cache):
     return tokens
 
 def preprocess(msg_str):
+    global nlp, sent2wec
     doc = nlp(msg_str)
     vectors = sent2wec.encode([s.text for s in doc.sents])
     preprocessed = []
@@ -73,6 +74,7 @@ def preprocess(msg_str):
     return preprocessed
 
 def get_relations(c):
+    global conceptnet
     rels = []
     if c in conceptnet:
         for n, attrs in conceptnet[c].items():
@@ -87,6 +89,7 @@ def flip_relation(rel):
     return rel.split(' ')[::-1]
 
 def extract_from_msg(msg,limit=10):
+    global sent2wec
     sentence_tokens = preprocess(msg)    
     all_rels = set()
     for sent,vec in sentence_tokens:
@@ -177,7 +180,7 @@ def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai
                     f.writelines(res)                    
                 
             print('Processed dataset!')
-            
+
 sent2wec = None
 nlp = None
 conceptnet = None
