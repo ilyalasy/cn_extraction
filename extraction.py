@@ -131,15 +131,6 @@ class ProgressParallel(Parallel):
         self._pbar.n = self.n_completed_tasks
         self._pbar.refresh()
 
-print('Setting up all models...')
-sent2wec = SentenceTransformer('all-MiniLM-L6-v2')
-nlp = spacy.load("en_core_web_sm",disable=['ner'])
-print('Models ready!')
-print('Loading conceptnet...')
-conceptnet = pd.read_csv('conceptnet_en_filtered.csv')
-conceptnet = create_graph(conceptnet)
-print('Conceptnet ready!')
-
 def process_convai_dialog(sample):
     if 'persona:' in sample:
         return sample
@@ -186,8 +177,23 @@ def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai
                     f.writelines(res)                    
                 
             print('Processed dataset!')
+            
+sent2wec = None
+nlp = None
+conceptnet = None
+def setup_models():
+    global sent2wec,nlp,conceptnet
+    print('Setting up all models...')
+    sent2wec = SentenceTransformer('all-MiniLM-L6-v2')
+    nlp = spacy.load("en_core_web_sm",disable=['ner'])
+    print('Models ready!')
+    print('Loading conceptnet...')
+    conceptnet = pd.read_csv('conceptnet_en_filtered.csv')
+    conceptnet = create_graph(conceptnet)
+    print('Conceptnet ready!')
 
 if __name__ == '__main__':
+    setup_models()
     bst_paths = [
         '/home/ilya/repos/ParlAI/data/blended_skill_talk/train.json',
         '/home/ilya/repos/ParlAI/data/blended_skill_talk/test.json',
