@@ -97,14 +97,14 @@ def extract_from_msg(msg,limit=10):
             rels = []
             if len(token) > 1:
                 t = ' '.join(token)
-                rels += get_relations(t)                
+                rels += get_relations(t)
             for t in token:                                
                 rels += get_relations(t)
             if rels:
                 rels_vecs = sent2wec.encode(rels)
                 vec = vec.reshape(1, -1)
-                idxs = filter_relations(rels_vecs,vec,limit=limit)                
-                rels = np.array(rels)     
+                idxs = filter_relations(rels_vecs,vec,limit=limit)
+                rels = np.array(rels)
                 rels = rels[idxs]
                 # rels = [r for r in rels if flip_relation(r) not in all_rels]
                 all_rels.update(rels)
@@ -150,10 +150,18 @@ def process_bst_dialog(sample):
         extracted = extract_from_msg(msg,limit=3)
         concepts.append(extracted)
     return {'dialog':sample['dialog'], 'concepts':concepts,'personas':sample['personas']}
+
+def process_wow_dialog(sample):        
+    for message in sample['dialog']:
+        if 'apprentice' in message['speaker'].lower():
+            msg = message['text']
+            extracted = extract_from_msg(msg,limit=3)
+            message['concepts'] = extracted
+    return sample['dialog']
             
 NEW_PATH = Path('with_concepts/')
-func_map = {'bst':process_bst_dialog,'convai':process_convai_dialog}
-def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai']):
+func_map = {'bst':process_bst_dialog,'convai':process_convai_dialog,'wow':process_wow_dialog}
+def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai','wow']):
     process_dialog = func_map[dataset]
     with ProgressParallel(n_jobs=n_jobs) as parallel:
         for ds in ds_paths:
@@ -167,7 +175,7 @@ def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai
                 else:
                     raise NotImplementedError()      
 
-            # data = data[:20]
+            data = data[:20]
             parallel.total = len(data)
             res = parallel(delayed(process_dialog)(sample) for sample in data)
             
@@ -208,7 +216,12 @@ if __name__ == '__main__':
         '/home/ilya/repos/ParlAI/data/ConvAI2/valid_both_original_no_cands.txt',
     ]
 
+    wow_paths = [
+        '/home/ilya/repos/ParlAI/data/wizard_of_wikipedia/train.json',
+        '/home/ilya/repos/ParlAI/data/wizard_of_wikipedia/valid_random_split.json',
+    ]
 
-    create_dataset(1,convai_paths,dataset='convai')
 
-# nohup python -u bst_extraction.py &
+    create_dataset(1,wow_paths,dataset='wow')
+
+# nohup python -u extraction.py &
