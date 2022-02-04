@@ -157,7 +157,7 @@ def process_wow_dialog(sample):
             msg = message['text']
             extracted = extract_from_msg(msg,limit=3)
             message['concepts'] = extracted
-    return sample['dialog']
+    return sample
             
 NEW_PATH = Path('with_concepts/')
 func_map = {'bst':process_bst_dialog,'convai':process_convai_dialog,'wow':process_wow_dialog}
