@@ -158,10 +158,20 @@ def process_wow_dialog(sample):
             extracted = extract_from_msg(msg,limit=3)
             message['concepts'] = extracted
     return sample
-            
+
+def process_empathetic_dialog(sample): 
+    row = sample.strip().split(",")    
+    if row[0] == 'conv_id': # header
+        return sample.strip() + ',concepts\n'
+    
+    msg = row[5].replace("_comma_", ",")
+    extracted = extract_from_msg(msg,limit=3)
+    concepts = '|'.join(extracted)        
+    return sample.strip() + f',{concepts}\n'
+
 NEW_PATH = Path('with_concepts/')
-func_map = {'bst':process_bst_dialog,'convai':process_convai_dialog,'wow':process_wow_dialog}
-def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai','wow']):
+func_map = {'bst':process_bst_dialog,'convai':process_convai_dialog,'wow':process_wow_dialog,'empathy':process_empathetic_dialog}
+def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai','wow','empathy']):
     process_dialog = func_map[dataset]
     with ProgressParallel(n_jobs=n_jobs) as parallel:
         for ds in ds_paths:
@@ -170,12 +180,9 @@ def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai
             with open(ds, 'r') as f:
                 if ds.suffix == '.json':
                     data = json.loads(f.read())
-                elif ds.suffix == '.txt':
-                    data = f.readlines()    
                 else:
-                    raise NotImplementedError()      
+                    data = f.readlines()                    
 
-            data = data[:20]
             parallel.total = len(data)
             res = parallel(delayed(process_dialog)(sample) for sample in data)
             
@@ -184,7 +191,7 @@ def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai
             with open(new_p / ds.name, 'w') as f:
                 if ds.suffix == '.json':
                     json.dump(res,f)
-                elif ds.suffix == '.txt':
+                else:
                     f.writelines(res)                    
                 
             print('Processed dataset!')
@@ -219,6 +226,12 @@ if __name__ == '__main__':
     wow_paths = [
         '/home/ilya/repos/ParlAI/data/wizard_of_wikipedia/train.json',
         '/home/ilya/repos/ParlAI/data/wizard_of_wikipedia/valid_random_split.json',
+    ]
+
+    empath_paths = [
+        '/home/ilya/repos/ParlAI/data/empatheticdialogues/empatheticdialogues/train.csv'
+        '/home/ilya/repos/ParlAI/data/empatheticdialogues/empatheticdialogues/test.csv',
+        '/home/ilya/repos/ParlAI/data/empatheticdialogues/empatheticdialogues/valid.csv',
     ]
 
 
