@@ -229,12 +229,12 @@ if __name__ == '__main__':
     ]
 
     empath_paths = [
-        '/home/ilya/repos/ParlAI/data/empatheticdialogues/empatheticdialogues/train.csv'
-        '/home/ilya/repos/ParlAI/data/empatheticdialogues/empatheticdialogues/test.csv',
-        '/home/ilya/repos/ParlAI/data/empatheticdialogues/empatheticdialogues/valid.csv',
+        '/home/ilya/repos/ParlAI/data/empatheticdialogues/train.csv',
+        '/home/ilya/repos/ParlAI/data/empatheticdialogues/test.csv',
+        '/home/ilya/repos/ParlAI/data/empatheticdialogues/valid.csv',
     ]
 
 
-    create_dataset(1,wow_paths,dataset='wow')
+    create_dataset(1,empath_paths,dataset='empathy')
 
 # nohup python -u extraction.py &
