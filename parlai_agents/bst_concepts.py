@@ -4,7 +4,7 @@ import parlai.utils.logging as logging
 from parlai.utils.misc import str_to_msg
 TOKEN_KNOWLEDGE = '__knowledge__'
 TOKEN_END_KNOWLEDGE = '__endknowledge__'
-class BlendedSkillTalkConceptsTeacher(BlendedSkillTalkTeacher):
+class ConceptsTeacher(BlendedSkillTalkTeacher):
     def _setup_data(self, path):
         logging.info(f"Loading ParlAI text data: {path}")
         self.episodes = []

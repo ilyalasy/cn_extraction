@@ -1,6 +1,6 @@
 ### copy to convai2/agents.py
 
-class SelfConceptsTeacher(SelfOriginalTeacher):
+class ConceptsTeacher(FbDeprecatedDialogTeacher):
     def __init__(self, opt, shared=None):
         opt = copy.deepcopy(opt)
         try:
@@ -10,3 +10,6 @@ class SelfConceptsTeacher(SelfOriginalTeacher):
             use_cands = True
         opt['datafile'] = _path(opt, 'self_original_concepts', use_cands)
         super().__init__(opt, shared)
+
+class NormalizedConceptsTeacher(NormalizedTeacherTrait, ConceptsTeacher):
+    pass

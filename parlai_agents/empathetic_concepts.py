@@ -2,11 +2,11 @@
 
 TOKEN_KNOWLEDGE = '__knowledge__'
 TOKEN_END_KNOWLEDGE = '__endknowledge__'
-class EmpatheticConceptsTeacher(EmpatheticDialoguesTeacher):
+class ConceptsTeacher(EmpatheticDialoguesTeacher):
     def __init__(self, opt, shared=None):
-        split = self.datatype.split(':')
+        split = opt['datatype'].split(':')
         base_datatype = split[0] + '_concepts'
-        self.datatype = ':'.join([base_datatype] + split[1:])
+        opt['datatype'] = ':'.join([base_datatype] + split[1:])
         super().__init__(opt, shared)
         
     def _setup_data(self, base_datatype):
@@ -43,7 +43,7 @@ class EmpatheticConceptsTeacher(EmpatheticDialoguesTeacher):
                 )
 
                 contextt = cparts[5].replace("_comma_", ",")
-                concepts = cparts[-1].replace(' ')
+                concepts = cparts[-1].replace("|"," ")
                 contextt += f'\n{TOKEN_KNOWLEDGE}{concepts}{TOKEN_END_KNOWLEDGE}'
                 label = sparts[5].replace("_comma_", ",")
                 prompt = sparts[2]
