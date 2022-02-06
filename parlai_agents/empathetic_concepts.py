@@ -3,6 +3,12 @@
 TOKEN_KNOWLEDGE = '__knowledge__'
 TOKEN_END_KNOWLEDGE = '__endknowledge__'
 class EmpatheticConceptsTeacher(EmpatheticDialoguesTeacher):
+    def __init__(self, opt, shared=None):
+        split = self.datatype.split(':')
+        base_datatype = split[0] + '_concepts'
+        self.datatype = ':'.join([base_datatype] + split[1:])
+        super().__init__(opt, shared)
+        
     def _setup_data(self, base_datatype):
 
         if self.opt.get('deepmoji') is not None:
