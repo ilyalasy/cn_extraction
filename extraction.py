@@ -152,11 +152,10 @@ def process_bst_dialog(sample):
     return {'dialog':sample['dialog'], 'concepts':concepts,'personas':sample['personas']}
 
 def process_wow_dialog(sample):        
-    for message in sample['dialog']:
-        if 'apprentice' in message['speaker'].lower():
-            msg = message['text']
-            extracted = extract_from_msg(msg,limit=3)
-            message['concepts'] = extracted
+    for message in sample['dialog']:        
+        msg = message['text']
+        extracted = extract_from_msg(msg,limit=3)
+        message['concepts'] = extracted
     return sample
 
 def process_empathetic_dialog(sample): 
@@ -226,15 +225,16 @@ if __name__ == '__main__':
     wow_paths = [
         '/home/ilya/repos/ParlAI/data/wizard_of_wikipedia/train.json',
         '/home/ilya/repos/ParlAI/data/wizard_of_wikipedia/valid_random_split.json',
+        '/home/ilya/repos/ParlAI/data/wizard_of_wikipedia/test_random_split.json',
     ]
 
     empath_paths = [
-        '/home/ilya/repos/ParlAI/data/empatheticdialogues/train.csv',
-        '/home/ilya/repos/ParlAI/data/empatheticdialogues/test.csv',
-        '/home/ilya/repos/ParlAI/data/empatheticdialogues/valid.csv',
+        '/home/ilya/repos/ParlAI/data/empatheticdialogues/empatheticdialogues/train.csv',
+        '/home/ilya/repos/ParlAI/data/empatheticdialogues/empatheticdialogues/test.csv',
+        '/home/ilya/repos/ParlAI/data/empatheticdialogues/empatheticdialogues/valid.csv',
     ]
 
 
-    create_dataset(1,empath_paths,dataset='empathy')
+    create_dataset(1,wow_paths,dataset='wow')
 
 # nohup python -u extraction.py &
