@@ -40,7 +40,7 @@ class ConceptsTeacher(BlendedSkillTalkTeacher):
                     )
                 if msg:
                     self.num_exs += 1
-                    concepts = msg['concepts'].replace("|",".")
+                    concepts = msg['concepts'].replace("|",". ")
                     text = msg['text'] + f'\n{TOKEN_KNOWLEDGE}{concepts}{TOKEN_END_KNOWLEDGE}'
                     msg.force_set('text',text)
                     del msg['concepts']

@@ -15,7 +15,7 @@ class ConceptsTeacher(BasicdialogTeacher):
 
         text = dialog_entry_1['text']
         concepts = dialog_entry_1.get('concepts',[])
-        concepts = '.'.join(concepts)        
+        concepts = '. '.join(concepts)
         text += f'\n{TOKEN_KNOWLEDGE}{concepts}{TOKEN_END_KNOWLEDGE}'
         labels = [dialog_entry_2['text']]
 
