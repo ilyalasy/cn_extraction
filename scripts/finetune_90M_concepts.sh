@@ -4,4 +4,4 @@ nohup parlai train_model -t blended_skill_talk:concepts,wizard_of_wikipedia:conc
 --activation gelu --fp16 True --text-truncate 512 --label-truncate 128 --dict-tokenizer bpe --dict-lower True -lr 1e-06 --optimizer adamax \
 --lr-scheduler reduceonplateau --gradient-clip 0.1 -veps 0.25 --betas 0.9,0.999 --update-freq 1 --attention-dropout 0.0 --relu-dropout 0.0 \
 --skip-generation True -vp 15 -stim 60 -vme 20000 -bs 16 -vmt ppl -vmm min --save-after-valid True --model-file models/concepts90M/test_train_90M --verbose \
---wblog True --wandb-entity ilyalas --wandb-project all_data --wandb-name concepts &
+--wblog True --wandb-entity ilyalas --wandb-project all_data --wandb-name concepts > 90M_concepts.out &
