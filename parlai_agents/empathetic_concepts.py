@@ -43,7 +43,7 @@ class ConceptsTeacher(EmpatheticDialoguesTeacher):
                 )
 
                 contextt = cparts[5].replace("_comma_", ",")
-                concepts = cparts[-1].replace("|"," ")
+                concepts = cparts[-1].replace("|",".")
                 contextt += f'\n{TOKEN_KNOWLEDGE}{concepts}{TOKEN_END_KNOWLEDGE}'
                 label = sparts[5].replace("_comma_", ",")
                 prompt = sparts[2]

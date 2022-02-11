@@ -1,6 +1,6 @@
 ### copy to wizard_of_wikipedia/agents.py
 
-class ConceptsDialogTeacher(BasicdialogTeacher):
+class ConceptsTeacher(BasicdialogTeacher):
     def get(self, episode_idx, entry_idx=0):
         d = self.data[episode_idx]
         episode_done = entry_idx == (self.len_episode(episode_idx) - 1)
@@ -15,7 +15,7 @@ class ConceptsDialogTeacher(BasicdialogTeacher):
 
         text = dialog_entry_1['text']
         concepts = dialog_entry_1.get('concepts',[])
-        concepts = ' '.join(concepts)        
+        concepts = '.'.join(concepts)        
         text += f'\n{TOKEN_KNOWLEDGE}{concepts}{TOKEN_END_KNOWLEDGE}'
         labels = [dialog_entry_2['text']]
 
