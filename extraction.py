@@ -134,15 +134,18 @@ class ProgressParallel(Parallel):
         self._pbar.n = self.n_completed_tasks
         self._pbar.refresh()
 
+TOKEN_KNOWLEDGE = '__knowledge__'
+TOKEN_END_KNOWLEDGE = '__endknowledge__'
 def process_convai_dialog(sample):
     if 'persona:' in sample:
         return sample
 
-    x,y = sample.split('\t')
+    x,y = sample.split('\t',1)
     msg = x.lstrip('0123456789 ')
     extracted = extract_from_msg(msg,limit=3)
-    extracted = '|'.join(extracted)
-    return f'{x}\t{y.strip()}\t{extracted}\n'
+    knowledge = '. '.join(extracted)
+    x += f'{TOKEN_KNOWLEDGE} {knowledge.strip()} {TOKEN_END_KNOWLEDGE}'
+    return f'{x}\t{y}\n'
 
 def process_bst_dialog(sample):        
     concepts = []
@@ -218,8 +221,8 @@ if __name__ == '__main__':
     ]
     
     convai_paths = [
-        '/home/ilya/repos/ParlAI/data/ConvAI2/train_both_original_no_cands.txt',
-        '/home/ilya/repos/ParlAI/data/ConvAI2/valid_both_original_no_cands.txt',
+        '/home/ilya/repos/ParlAI/data/ConvAI2/train_self_original.txt',
+        '/home/ilya/repos/ParlAI/data/ConvAI2/valid_self_original.txt',
     ]
 
     wow_paths = [
@@ -235,6 +238,6 @@ if __name__ == '__main__':
     ]
 
 
-    create_dataset(1,wow_paths,dataset='wow')
+    create_dataset(1,convai_paths,dataset='convai')
 
 # nohup python -u extraction.py &
