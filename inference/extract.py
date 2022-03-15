@@ -105,7 +105,9 @@ def extract_from_msg(msg,limit=3):
                 all_rels.update(rels)
     return all_rels
 
+print('Loading extraction models...')
 sent2wec = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 nlp = spacy.load("en_core_web_sm",disable=['ner'])
-conceptnet = pd.read_csv('/home/ilya/repos/extraction/conceptnet_en_filtered.csv')
+conceptnet = pd.read_csv('/scratch/lustre/home/illa7843/cn_extraction/conceptnet_en_filtered.csv')
 conceptnet = create_graph(conceptnet)
+print('ConceptNet extraction ready!')

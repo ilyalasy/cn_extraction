@@ -1,5 +1,7 @@
 ### replace SelfChatWorld in blended_skill_talk/worlds.py
 from parlai.tasks.blended_skill_talk.extract import extract_from_msg
+from parlai.core.worlds import validate
+from parlai.core.message import Message
 TOKEN_KNOWLEDGE = '__knowledge__'
 TOKEN_END_KNOWLEDGE = '__endknowledge__'
 class SelfChatWorld(SelfChatBaseWorld):
@@ -45,7 +47,7 @@ class SelfChatWorld(SelfChatBaseWorld):
     def _add_knowledge_to_act(self, act):
         text = act['text']
         concepts = extract_from_msg(text)
-        knowledge = ' '.join(concepts)
+        knowledge = '. '.join(concepts)
         text += f'\n{TOKEN_KNOWLEDGE}{knowledge}{TOKEN_END_KNOWLEDGE}'
         act.force_set('text',text)
         return act
@@ -92,12 +94,14 @@ class SelfChatWorld(SelfChatBaseWorld):
             acts = self.acts
             agents = self.agents
 
-            acts[0] = agents[0].act()            
-            acts[0] = self._add_knowledge_to_act(acts[0])
+            acts[0] = agents[0].act() 
+            if self.opt.get('include_concepts', False):          
+                acts[0] = self._add_knowledge_to_act(acts[0])
             agents[1].observe(validate(acts[0]))
 
             acts[1] = agents[1].act()
-            acts[1] = self._add_knowledge_to_act(acts[1])
+            if self.opt.get('include_concepts', False):
+                acts[1] = self._add_knowledge_to_act(acts[1])
             agents[0].observe(validate(acts[1]))
 
         self.update_counters()
