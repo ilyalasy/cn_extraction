@@ -22,3 +22,10 @@ en_kb = en_kb[from_stems != to_stems]
 
 # en_kb.to_csv('conceptnet_en.csv',index=False)
 en_kb.to_csv('conceptnet_en_filtered.csv',index=False)
+
+relations = (en_kb.relation.value_counts(normalize=True).mul(100).round(1).astype(str) + '%').head(16)
+relations = relations[~relations.index.isin(['/r/Synonym','/r/Antonym','/r/DerivedFrom'])].index.tolist()
+print(spec_tokens = [f'__{r[3:]}__' for r in relations])
+
+en_kb[en_kb.relation.isin(relations)].to_csv('conceptnet_en_filtered_13.csv', index=False)
+
