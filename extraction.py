@@ -14,9 +14,8 @@ from sentence_transformers import SentenceTransformer
 
 
 def extract_relation(r):
-    s = r.replace('/r/','')
-    s = re.sub('([A-Z]+)', r' \1', s).strip()
-    return s
+    s = r.replace('/r/','')    
+    return f'__{s}__'
 
 def extract_word(w):
     s = re.search('\/c\/en\/(.*?)(\/|$)', w).group(1)
@@ -78,8 +77,14 @@ def get_relations(c):
     rels = []
     if c in conceptnet:
         for n, attrs in conceptnet[c].items():
-            rels.append(f"{c} {attrs['relation']} {n}")
+            rels.append(f"{c}{attrs['relation']}{n}")
     return rels
+
+def rel2_sent(triple):
+    f,rel,t = triple.split('__')
+    rel = re.sub('([A-Z]+)', r' \1', rel).strip()
+    return f'{f} {rel} {t}'
+
 
 def filter_relations(rels_vecs,sent_vec,limit=10):
     sims = cosine_similarity(rels_vecs,sent_vec)
@@ -101,7 +106,8 @@ def extract_from_msg(msg,limit=10):
             for t in token:                                
                 rels += get_relations(t)
             if rels:
-                rels_vecs = sent2wec.encode(rels)
+                sent_rels = [rel2_sent(r) for r in rels]
+                rels_vecs = sent2wec.encode(sent_rels)
                 vec = vec.reshape(1, -1)
                 idxs = filter_relations(rels_vecs,vec,limit=limit)
                 rels = np.array(rels)
@@ -143,22 +149,32 @@ def process_convai_dialog(sample):
     x,y = sample.split('\t',1)
     msg = x.lstrip('0123456789 ')
     extracted = extract_from_msg(msg,limit=3)
-    knowledge = '. '.join(extracted)
-    x += f'{TOKEN_KNOWLEDGE} {knowledge.strip()} {TOKEN_END_KNOWLEDGE}'
-    return f'{x}\t{y}\n'
+    knowledge = ''
+    for triple in extracted:
+        knowledge += f'{TOKEN_KNOWLEDGE}{triple}{TOKEN_END_KNOWLEDGE}'
+    x += knowledge
+    return f'{x}\t{y}'
 
-def process_bst_dialog(sample):        
-    concepts = []
-    for s_id,msg in sample['dialog']:
-        extracted = extract_from_msg(msg,limit=3)
-        concepts.append(extracted)
-    return {'dialog':sample['dialog'], 'concepts':concepts,'personas':sample['personas']}
+def process_bst_dialog(sample):            
+    for info in sample.split('\t'):
+        if info.startswith('free_message:'):            
+            msg = info.replace('free_message:','')
+            extracted = extract_from_msg(msg,limit=3)
+            break
+    
+    knowledge = ''
+    for triple in extracted:
+        knowledge += f'{TOKEN_KNOWLEDGE}{triple}{TOKEN_END_KNOWLEDGE}'    
+    return sample.strip() + '\tconcepts:' + knowledge + '\n'
 
 def process_wow_dialog(sample):        
     for message in sample['dialog']:        
         msg = message['text']
         extracted = extract_from_msg(msg,limit=3)
-        message['concepts'] = extracted
+        knowledge = ''
+        for triple in extracted:
+            knowledge += f'{TOKEN_KNOWLEDGE}{triple}{TOKEN_END_KNOWLEDGE}'
+        message['concepts'] = knowledge
     return sample
 
 def process_empathetic_dialog(sample): 
@@ -168,35 +184,37 @@ def process_empathetic_dialog(sample):
     
     msg = row[5].replace("_comma_", ",")
     extracted = extract_from_msg(msg,limit=3)
-    concepts = '|'.join(extracted)        
+    concepts = ''
+    for triple in extracted:
+        concepts += f'{TOKEN_KNOWLEDGE}{triple}{TOKEN_END_KNOWLEDGE}'   
     return sample.strip() + f',{concepts}\n'
 
 NEW_PATH = Path('with_concepts/')
 func_map = {'bst':process_bst_dialog,'convai':process_convai_dialog,'wow':process_wow_dialog,'empathy':process_empathetic_dialog}
 def create_dataset(n_jobs:int, ds_paths:List[str], dataset:Literal['bst','convai','wow','empathy']):
     process_dialog = func_map[dataset]
-    with ProgressParallel(n_jobs=n_jobs) as parallel:
-        for ds in ds_paths:
-            ds = Path(ds)
-            print(ds.name)
-            with open(ds, 'r') as f:
-                if ds.suffix == '.json':
-                    data = json.loads(f.read())
-                else:
-                    data = f.readlines()                    
+    # with ProgressParallel(n_jobs=n_jobs) as parallel:
+    for ds in ds_paths:
+        ds = Path(ds)
+        print(ds.name)
+        with open(ds, 'r') as f:
+            if ds.suffix == '.json':
+                data = json.loads(f.read())
+            else:
+                data = f.readlines()                    
 
-            parallel.total = len(data)
-            res = parallel(delayed(process_dialog)(sample) for sample in data)
+        # parallel.total = len(data)
+        res = [process_dialog(sample) for sample in data]
+        
+        new_p = NEW_PATH / dataset 
+        new_p.mkdir(parents=True,exist_ok=True)
+        with open(new_p / ds.name, 'w') as f:
+            if ds.suffix == '.json':
+                json.dump(res,f)
+            else:
+                f.writelines(res)                    
             
-            new_p = NEW_PATH / dataset 
-            new_p.mkdir(parents=True,exist_ok=True)
-            with open(new_p / ds.name, 'w') as f:
-                if ds.suffix == '.json':
-                    json.dump(res,f)
-                else:
-                    f.writelines(res)                    
-                
-            print('Processed dataset!')
+        print('Processed dataset!')
 
 sent2wec = None
 nlp = None
@@ -208,16 +226,16 @@ def setup_models():
     nlp = spacy.load("en_core_web_sm",disable=['ner'])
     print('Models ready!')
     print('Loading conceptnet...')
-    conceptnet = pd.read_csv('conceptnet_en_filtered.csv')
+    conceptnet = pd.read_csv('conceptnet_en_filtered_13.csv')
     conceptnet = create_graph(conceptnet)
     print('Conceptnet ready!')
 
 if __name__ == '__main__':
     setup_models()
     bst_paths = [
-        '/home/ilya/repos/ParlAI/data/blended_skill_talk/train.json',
-        '/home/ilya/repos/ParlAI/data/blended_skill_talk/test.json',
-        '/home/ilya/repos/ParlAI/data/blended_skill_talk/valid.json',
+        '/home/ilya/repos/ParlAI/data/blended_skill_talk/train.txt',
+        '/home/ilya/repos/ParlAI/data/blended_skill_talk/test.txt',
+        '/home/ilya/repos/ParlAI/data/blended_skill_talk/valid.txt',
     ]
     
     convai_paths = [
@@ -238,6 +256,9 @@ if __name__ == '__main__':
     ]
 
 
+    create_dataset(1,bst_paths,dataset='bst')
     create_dataset(1,convai_paths,dataset='convai')
+    create_dataset(1,wow_paths,dataset='wow')
+    create_dataset(1,empath_paths,dataset='empathy')
 
 # nohup python -u extraction.py &
